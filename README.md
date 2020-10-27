@@ -1,10 +1,10 @@
 # Go Plus Ultra
 
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/evertras/go-plus-ultra)](https://pkg.go.dev/github.com/evertras/go-plus-ultra)
+
 Useful extensions to the Go standard libraries.
 
 There's only one rule: standard library only!
-
-TODO: docs
 
 ## Using
 
