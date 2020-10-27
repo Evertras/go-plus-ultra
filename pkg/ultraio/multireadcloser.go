@@ -21,6 +21,11 @@ type multiReadCloser struct {
 // This will close all the io.ReadClosers at once when Close is called.
 // Nothing will be closed until Close is called.  Even if some closers
 // return an error, all closers will attempt to be closed.
+//
+// It will only read from a single ReadCloser at a time, so multiple
+// calls to Read are required for each reader.  Any code using io.Reader
+// or io.ReadCloser should already naturally handle this, but noting it
+// here anyway.
 func MultiReadCloser(readClosers ...io.ReadCloser) io.ReadCloser {
 	return &multiReadCloser{
 		readClosers: readClosers,
@@ -48,10 +53,6 @@ func (m *multiReadCloser) Close() error {
 
 // Read will read from the current io.ReadCloser, then move on to the next once
 // the current one is finished.
-//
-// It will only return from a single ReadCloser at a time, so multiple calls to
-// Read are required for each reader.  Any code using io.Reader or io.ReadCloser
-// should already naturally handle this, but noting it here anyway.
 func (m *multiReadCloser) Read(p []byte) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
