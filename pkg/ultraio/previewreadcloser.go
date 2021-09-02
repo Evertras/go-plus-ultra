@@ -22,6 +22,13 @@ func PreviewReadCloser(stream io.ReadCloser, n int) ([]byte, io.ReadCloser, erro
 	// considering the error err. Doing so correctly handles I/O errors...
 	n, err := stream.Read(previewed)
 
+	// This is a special case where the stream we were given is already
+	// at the end, so just return an empty preview and let the next Read
+	// discover the same error
+	if err == io.EOF {
+		return []byte{}, stream, nil
+	}
+
 	// Trim extra nulls at the end if we didn't read the full requested amount
 	previewed = previewed[:n]
 

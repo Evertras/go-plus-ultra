@@ -31,6 +31,12 @@ func TestPreviewReadCloserWorks(t *testing.T) {
 			previewLength:   0,
 			expectedPreview: "",
 		},
+		{
+			name:            "StreamIsEmpty",
+			contents:        "",
+			previewLength:   50,
+			expectedPreview: "",
+		},
 	}
 
 	for _, test := range tests {
