@@ -37,3 +37,22 @@ func PreviewReadCloser(stream io.ReadCloser, n int) ([]byte, io.ReadCloser, erro
 
 	return previewed, resetStream, err
 }
+
+// PreviewReadAllCloser will read the entire stream into memory, but not close it.
+// Reading from the stream will use the in-memory copy, and calling Close will
+// close the underlying original stream.
+func PreviewReadAllCloser(stream io.ReadCloser) ([]byte, io.ReadCloser, error) {
+	previewed, err := ioutil.ReadAll(stream)
+
+	// This is a special case where the stream we were given is already
+	// at the end, so just return an empty preview and let the next Read
+	// discover the same error
+	if err == io.EOF {
+		return []byte{}, stream, nil
+	}
+
+	previewedStream := ioutil.NopCloser(bytes.NewReader(previewed))
+	resetStream := MultiReadCloser(previewedStream, stream)
+
+	return previewed, resetStream, err
+}

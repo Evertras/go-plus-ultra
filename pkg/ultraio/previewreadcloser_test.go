@@ -70,3 +70,70 @@ func TestPreviewReadCloserWorks(t *testing.T) {
 		})
 	}
 }
+
+func TestPreviewReadCloserClosesUnderlyingStream(t *testing.T) {
+	mockReader := newMockReadCloser([]byte("Hello world"))
+
+	previewed, stream, err := PreviewReadCloser(mockReader, 5)
+
+	if err != nil {
+		t.Fatalf("Unexpected error from PreviewReadCloser: %v", err)
+	}
+
+	if string(previewed) != "Hello" {
+		t.Errorf("Incorrect preview: Got %q - want %q", string(previewed), "Hello")
+	}
+
+	if mockReader.IsClosed() {
+		t.Error("Underlying reader should not be closed yet")
+	}
+
+	err = stream.Close()
+
+	if err != nil {
+		t.Fatalf("Unexpected error from closing stream: %v", err)
+	}
+
+	if !mockReader.IsClosed() {
+		t.Error("Underlying reader should be closed")
+	}
+}
+
+func TestPreviewReadAllPreviewsAndClosesProperly(t *testing.T) {
+	testContents := "Hello world"
+	mockReader := newMockReadCloser([]byte(testContents))
+
+	previewed, stream, err := PreviewReadAllCloser(mockReader)
+
+	if err != nil {
+		t.Fatalf("Unexpected error from PreviewReadAllCloser: %v", err)
+	}
+
+	if string(previewed) != testContents {
+		t.Errorf("Incorrect preview: Got %q - want %q", string(previewed), testContents)
+	}
+
+	remainingContents, err := ioutil.ReadAll(stream)
+
+	if err != nil {
+		t.Fatalf("Unexpected error from ioutil.ReadAll on returned stream: %v", err)
+	}
+
+	if string(remainingContents) != testContents {
+		t.Errorf("Incorrect remaining stream: Got %q - want %q", string(remainingContents), testContents)
+	}
+
+	if mockReader.IsClosed() {
+		t.Error("Underlying reader should not be closed yet")
+	}
+
+	err = stream.Close()
+
+	if err != nil {
+		t.Fatalf("Unexpected error from closing stream: %v", err)
+	}
+
+	if !mockReader.IsClosed() {
+		t.Error("Underlying reader should be closed")
+	}
+}
